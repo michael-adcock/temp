@@ -1,5 +1,7 @@
 package DataAssimKotlin
 
+import StationSim.Entrance
+import StationSim.Person
 import StationSim.State
 import StationSim.Station
 import java.io.File
@@ -49,13 +51,15 @@ fun main(args : Array<String>) {
     do {
         var checkCosts = false
         var costs : MutableMap<Station, Double> = mutableMapOf()
+        var simRemove : MutableList<Station> = mutableListOf()
+        var simKeep : MutableList<Station> = mutableListOf()
         for (sim in simulations) {
             if (!sim.schedule.step(sim)) {
                 break
             }
             if (sim.schedule.steps % subsetInterval == 0L) {
                 //costs.add(costFunction(sim))
-                costs[sim] = costFunction(sim)
+                costs[sim] = costFunction(sim, subset.filter {it.step ==  sim.schedule.steps})
                 checkCosts = true
             }
         }
@@ -64,9 +68,46 @@ fun main(args : Array<String>) {
 
             for ((sim, cost) in costs) {
                 if (cost > med) {
-                    //remove sim
+                    simRemove.add(sim)
                 } else {
-                    //clone sim
+                    simKeep.add(sim)
+                }
+            }
+            for (sim in simRemove ) {
+                simulations.remove(sim)
+            }
+            simRemove.clear()
+            for(simulation in simKeep) {
+                val newSim = Station(System.currentTimeMillis())
+
+                // adjust exit probs slightly
+                for(probs in newSim.exitProbs) {
+                    probs[0] += (Random().nextDouble() - 0.5) * 0.1
+                }
+
+                newSim.start()
+                simulations.add(newSim)
+
+                // set the state of the simulation
+                for (person in simulation.area.getAllObjects())
+                    if (person is Person) {
+
+                        println("ok") ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+                        //val newPerson = Person(newSim.personSize, person.location, person.toString(), newSim, person.entrance.exitProbs, person.entrance)
+                        newSim.area.setObjectLocation(person, person.location) // copy object needed ?
+
+
+                    for (person in simulation.finishedPeople) {
+                        if (person is Person) {
+                            newSim.finishedPeople.add(person) // copy object needed ?
+                        }
+                    }
+                    for ((i, entrance) in simulation.entrances.withIndex()) {
+                        if (entrance is Entrance) {
+                            newSim.entrances[i].numPeople = entrance.numPeople
+                        }
+                        newSim.addedCount = simulation.addedCount
+                    }
                 }
             }
             checkCosts = false
@@ -83,8 +124,22 @@ fun main(args : Array<String>) {
 
 }
 
-fun costFunction (sim : Station) : Double {
-    return 0.0
+fun costFunction (sim : Station, subset : List<State>) : Double {
+    var cost = 0.0
+    var found = true
+    for (truth in subset) {
+        for(person in sim.entrances)
+            if (truth.person == person.toString()) {
+                cost += Math.sqrt(((person.location.x - truth.x) * (person.location.x - truth.x)) -
+                        ((person.location.y - truth.y) * (person.location.y - truth.y)))
+                found = true
+            }
+        if (!found) {
+            cost += 50
+            found = false
+        }
+    }
+    return cost
 }
 
 fun median(l: List<Double>) = l.sorted().let { (it[it.size / 2] + it[(it.size - 1) / 2]) / 2 }
