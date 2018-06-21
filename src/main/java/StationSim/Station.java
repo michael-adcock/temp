@@ -45,8 +45,7 @@ public class Station extends SimState{
     private int numPeople = 1500;
     private int numEntrances = 3;
     private int numExits = 2;
-    //private double exitProb = 0.8;
-    private double[][] exitProbs = {{0.2, 0.8},
+    public double[][] exitProbs = {{0.2, 0.8},
                                     {0.3, 0.7},
                                     {0.9, 0.1}};
     private int exitInterval = 30;
@@ -55,11 +54,14 @@ public class Station extends SimState{
     private int exitSize = 5;
     private int personSize = 1; // sort bug here
     public int addedCount;
-    private boolean writeResults = true;
+    private boolean writeResults = false;
+
+    //Bag of people who have finished the simulation
+    public Bag finishedPeople = new Bag();
 
     // Store  exit agents for passing to constructors
     public ArrayList<Exit> exits;
-    private ArrayList<Entrance> entrances;
+    public ArrayList<Entrance> entrances;
 
     //Analysis agent
     private Analysis analysis;

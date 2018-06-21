@@ -54,7 +54,8 @@ public class Exit extends Agent {
                 if (personLocation.getX() >= location.getX() - (station.wallWidth * 2.0) - (p.getRadius() * 2)  &&
                         personLocation.getY() < (location.getY() + (size / 2.0)) && // check this (size / 2.0)
                                 personLocation.getY() > (location.getY() - (size / 2.0))) {
-                    station.area.remove(p);
+                    station.finishedPeople.add(p); // Put into bag of finished people
+                    station.area.remove(p); //remove from sim
                 }
             }
         }

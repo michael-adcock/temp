@@ -57,7 +57,7 @@ public class Analysis implements Steppable {
 
         // Set up data frame
         stateDataFrame = new ArrayList<>();
-        header = Arrays.asList("step", "agent", "x_pos", "y_pos", "speed", "exit");
+        header = Arrays.asList("step", "agent", "finished", "x_pos", "y_pos", "speed", "entrance", "exit");
         stateDataFrame.add(header);
 
         // Set up aggregateDataFrame
@@ -284,15 +284,35 @@ public class Analysis implements Steppable {
         List<String> row;
         long step = station.schedule.getSteps();
 
+        //People currently in sim
         Bag people = station.area.getAllObjects();
         for (int i = 0; i < people.size(); i++) {
             person = (Person) people.get(i);
             row = Arrays.asList(
                     Long.toString(step), // step
                     person.toString(), //person
+                    "0", // not finished (ie still in sim)
                     Double.toString(person.getLocation().getX()), // x pos
                     Double.toString(person.getLocation().getY()), //y pos
                     Double.toString(person.getCurrentSpeed()), //current Speed
+                    person.entrance.toString(),
+                    person.getExit().toString() // target exit
+            );
+            stateDataFrame.add(row);
+        }
+
+        //People who have finished sim
+        people = station.finishedPeople;
+        for (int i = 0; i < people.size(); i++) {
+            person = (Person) people.get(i);
+            row = Arrays.asList(
+                    Long.toString(step), // step
+                    person.toString(), //person
+                    "1", //finished simulation
+                    Double.toString(person.getLocation().getX()), // x pos
+                    Double.toString(person.getLocation().getY()), //y pos
+                    Double.toString(person.getCurrentSpeed()), //current Speed
+                    person.entrance.toString(),
                     person.getExit().toString() // target exit
             );
             stateDataFrame.add(row);

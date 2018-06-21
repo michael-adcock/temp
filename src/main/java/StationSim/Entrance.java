@@ -32,7 +32,7 @@ import java.util.ArrayList;
 public class Entrance extends Agent {
 
     private int personSize;
-    private int numPeople;
+    public int numPeople;
     //private double buffer = 0.2;
     private int entranceInterval; // How often are Person objects produced
 
@@ -77,7 +77,7 @@ public class Entrance extends Agent {
                 double y = location.getY();
                 Double2D spawnLocation = new Double2D(x + 1,
                         (y + i) - ((size / 2.0) - personSize / 2.0)); // need to add a buffer
-                Person person = new Person(personSize, spawnLocation, "Person: " + (station.addedCount + 1), station, exitProbs);
+                Person person = new Person(personSize, spawnLocation, "Person: " + (station.addedCount + 1), station, exitProbs, this);
                 if (!person.collision(spawnLocation)) {
                     station.area.setObjectLocation(person, spawnLocation);
                     addedCount++;

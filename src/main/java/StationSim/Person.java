@@ -27,6 +27,7 @@ public class Person extends Agent {
 
     private Station station;
 
+    public Entrance entrance;
     public Exit exit;
     private double desiredSpeed;
     private double minSpeed = 0.1;
@@ -34,9 +35,11 @@ public class Person extends Agent {
     private double radius;
     private double currentSpeed;
 
-    public Person(int size, Double2D location, String name, Station station, double[] exitProbs) {
+
+    public Person(int size, Double2D location, String name, Station station, double[] exitProbs, Entrance entrance) {
         super(size, location, name);
         this.station = station;
+        this.entrance = entrance;
         radius = size / 2.0;
         desiredSpeed = (Math.abs(station.random.nextGaussian()) + minSpeed) * speedMultilpler;
         currentSpeed = 0.0;
