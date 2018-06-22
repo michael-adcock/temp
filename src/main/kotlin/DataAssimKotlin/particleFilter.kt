@@ -28,8 +28,10 @@ fun main(args : Array<String>) {
         }
     }
 
-    val numSimulations = 2
+    // Hom many simulations will we use
+    val numSimulations = 10
 
+    // Randomly create staring exit probabilities for simulations
     var exitProbParams : MutableList<Array<DoubleArray?>> = mutableListOf()
     for(sim in 0 until numSimulations) {
         var exitProb = arrayOfNulls<DoubleArray>(3)
@@ -40,6 +42,7 @@ fun main(args : Array<String>) {
         exitProbParams.add(exitProb)
     }
 
+    // Create the simulations
     var simulations : MutableList<Station> = mutableListOf()
     for (exitProbs in exitProbParams) {
         val stationSim = Station(System.currentTimeMillis())
@@ -48,75 +51,77 @@ fun main(args : Array<String>) {
         simulations.add(stationSim)
     }
 
+    // Main loop
     do {
         var checkCosts = false
         var costs : MutableMap<Station, Double> = mutableMapOf()
-        var simRemove : MutableList<Station> = mutableListOf()
-        var simKeep : MutableList<Station> = mutableListOf()
+
+
+        // Run a step of each simulation
         for (sim in simulations) {
             if (!sim.schedule.step(sim)) {
                 break
             }
+            // Check if simulations have reached desired interval. If so, check performance with cost function
+            // Store Sims and costs in a map
             if (sim.schedule.steps % subsetInterval == 0L) {
                 //costs.add(costFunction(sim))
-                costs[sim] = costFunction(sim, subset.filter {it.step ==  sim.schedule.steps})
+                costs[sim] = costFunction(sim, subset.filter { it.step == sim.schedule.steps })
                 checkCosts = true
             }
         }
+
+        // Remove worst performers, clone best performers
         if (checkCosts) {
             val med = median(costs.values.toList())
-
             for ((sim, cost) in costs) {
                 if (cost > med) {
-                    simRemove.add(sim)
+                    simulations.remove(sim)
+
                 } else {
-                    simKeep.add(sim)
-                }
-            }
-            for (sim in simRemove ) {
-                simulations.remove(sim)
-            }
-            simRemove.clear()
-            for(simulation in simKeep) {
-                val newSim = Station(System.currentTimeMillis())
+                    // Clone sim with adjusted exitProbs
+                    val newSim = Station(System.currentTimeMillis())
+                    // adjust exit probs slightly
+                    for (probs in newSim.exitProbs) {
+                        probs[0] += (Random().nextDouble() - 0.5) * 0.1
+                    }
 
-                // adjust exit probs slightly
-                for(probs in newSim.exitProbs) {
-                    probs[0] += (Random().nextDouble() - 0.5) * 0.1
-                }
+                    //Start sim and add to list
+                    newSim.start()
+                    simulations.add(newSim)
 
-                newSim.start()
-                simulations.add(newSim)
+                    // set the state of the simulation
+                    // Position of all active people
+                    for (person in sim.area.getAllObjects()) {
+                        if (person is Person) {
+                            println("ok") ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+                            //val newPerson = Person(newSim.personSize, person.location, person.toString(), newSim, person.entrance.exitProbs, person.entrance)
+                            newSim.area.setObjectLocation(person, person.location) // copy object needed ?
+                        }
+                    }
 
-                // set the state of the simulation
-                for (person in simulation.area.getAllObjects())
-                    if (person is Person) {
-
-                        println("ok") ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-                        //val newPerson = Person(newSim.personSize, person.location, person.toString(), newSim, person.entrance.exitProbs, person.entrance)
-                        newSim.area.setObjectLocation(person, person.location) // copy object needed ?
-
-
-                    for (person in simulation.finishedPeople) {
+                    // List of finished people
+                    for (person in sim.finishedPeople) {
                         if (person is Person) {
                             newSim.finishedPeople.add(person) // copy object needed ?
                         }
                     }
-                    for ((i, entrance) in simulation.entrances.withIndex()) {
+
+                    // Set correct num of remaining people to enter sim from each entrance
+                    for ((i, entrance) in sim.entrances.withIndex()) {
                         if (entrance is Entrance) {
                             newSim.entrances[i].numPeople = entrance.numPeople
                         }
-                        newSim.addedCount = simulation.addedCount
                     }
+                    // Set correct number of people already added to sim
+                    newSim.addedCount = sim.addedCount
                 }
             }
-            checkCosts = false
         }
-    }
-        while (simulations[0].area.getAllObjects().size > 0 || simulations[0].schedule.steps < 10000)
+    } while (simulations[0].area.getAllObjects().size > 0 || simulations[0].schedule.steps < 10000)
 
+    //clean up
     for (sim in simulations) {
-        //clean up
         sim.finish()
     }
         System.exit(0)

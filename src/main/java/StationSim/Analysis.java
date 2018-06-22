@@ -77,26 +77,28 @@ public class Analysis implements Steppable {
      * @param state
      */
     public void step(SimState state) {
-        station = (Station) state;
-        updateOccupancy();
-        //writeTemporalOccupancy();
-        updateStateDataFrame();
-        updateAggregateDataFrame();
-        //writeState(false);
-        // End simulation when all people have left
-        if (station.area.getAllObjects().size() == 0 && station.getWriteResults() == true) {
-            System.out.printf("Writing data out");
-            long sysTime = System.currentTimeMillis();
-            //writeParameters("parameters_" + sysTime + ".html");
-            System.out.printf(".");
-            writeAverageOccupancy();
-            System.out.printf(".");
-            writeDataFrame(stateDataFrame, "state_data" + sysTime + ".txt");
-            System.out.printf(".");
-            writeDataFrame(aggregateDataFrame, "aggregate_data" + sysTime + ".txt");
-            System.out.printf(".");
-            station.finish();
-            System.out.println("Finished!");
+        if(station.getWriteResults()) {
+            station = (Station) state;
+            updateOccupancy();
+            //writeTemporalOccupancy();
+            updateStateDataFrame();
+            updateAggregateDataFrame();
+            //writeState(false);
+            // End simulation when all people have left
+            if (station.area.getAllObjects().size() == 0) {
+                System.out.printf("Writing data out");
+                long sysTime = System.currentTimeMillis();
+                //writeParameters("parameters_" + sysTime + ".html");
+                System.out.printf(".");
+                writeAverageOccupancy();
+                System.out.printf(".");
+                writeDataFrame(stateDataFrame, "state_data" + sysTime + ".txt");
+                System.out.printf(".");
+                writeDataFrame(aggregateDataFrame, "aggregate_data" + sysTime + ".txt");
+                System.out.printf(".");
+                station.finish();
+                System.out.println("Finished!");
+            }
         }
     }
 
